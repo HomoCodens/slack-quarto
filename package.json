@@ -1,0 +1,19 @@
+{
+  "name": "slackquarto",
+  "version": "1.0.0",
+  "description": "Play Quarto over Slack",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha \"quarto/src/quarto.spec.js\""
+  },
+  "author": "thoenis",
+  "license": "ISC",
+  "devDependencies": {
+    "mocha": "^6.0.1",
+    "rewire": "^4.0.1",
+    "sinon": "^7.2.5"
+  },
+  "dependencies": {
+    "jimp": "^0.6.0"
+  }
+}
