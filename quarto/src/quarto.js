@@ -67,6 +67,11 @@ const parseIndex = (i) => {
  */
 const piecesHavePropertyInCommon = (a, b, p) => (~(a ^ b) & (1 << p)) > 0
 
+/**
+ * Checks if the array of 4 pieces is a winning combination
+ * i.e. they have at least one property in common.
+ * @param {Piece[]} pieces 
+ */
 const isWinningSet = (pieces) => {
     for(let i = 0; i < 4; i++) {
         if(pieces[i] < 0) {
@@ -90,6 +95,10 @@ const isWinningSet = (pieces) => {
     return false;
 }
 
+/**
+ * Checks whether there is a win by row on the board
+ * @param {Piece[]} board 
+ */
 const hasWinningRow = (board) => {
     for(let r = 0; r < 4; r++) {
         const row = [board[4*r], board[4*r+1], board[4*r+2], board[4*r+3]];
@@ -100,6 +109,10 @@ const hasWinningRow = (board) => {
     return false;
 }
 
+/**
+ * Checks whether there is a win by column on the board
+ * @param {Piece[]} board 
+ */
 const hasWinningColumn = (board) => {
     for(let c = 0; c < 4; c++) {
         let column = [board[c], board[c+4], board[c+8], board[c+12]];
@@ -110,11 +123,19 @@ const hasWinningColumn = (board) => {
     return false;
 }
 
+/**
+ * Checks whether there is a win by diagonal on the board
+ * @param {Piece[]} board 
+ */
 const hasWinningDiagonal = (board) => {
     return isWinningSet([board[0], board[5], board[10], board[15]]) ||
             isWinningSet([board[3], board[6], board[9], board[12]]);
 }
 
+/**
+ * Checks whether any of the 9 squares on the board wins
+ * @param {Piece[]} board 
+ */
 const hasWinningSquare = (board) => {
     for(let r = 0; r < 3; r++) {
         for(let c = 0; c < 3; c++) {

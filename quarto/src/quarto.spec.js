@@ -66,103 +66,235 @@ describe('Quarto', () => {
         const { piecesHavePropertyInCommon } = require('./quarto');
 
         it('returns true when pieces have something in common', () => {
-            assert.equal(piecesHavePropertyInCommon(1, 3, 0), true);
+            assert(piecesHavePropertyInCommon(1, 3, 0));
         });
 
         it('returns false on pieces not sharing a property', () => {
-            assert.equal(piecesHavePropertyInCommon(2, 4, 1), false);
+            assert(!piecesHavePropertyInCommon(2, 4, 1));
         });
     });
 
-    /*describe('isWinningSet', () => {
-        it('recognizes a winning set', () => {
-            assert.equal(quarto.isWinningSet([1, 3, 5, 7]), true);
+    describe('isWinningSet', () => {
+        const quarto = rewire('./quarto');
+        const fakePiecesHavePropertyInCommon = sinon.stub();
+        quarto.__set__('piecesHavePropertyInCommon', fakePiecesHavePropertyInCommon);
+
+        beforeEach(() => fakePiecesHavePropertyInCommon.reset());
+
+        it('returns true on winning', () => {
+            fakePiecesHavePropertyInCommon.returns(true);
+            assert(quarto.isWinningSet([0, 1, 2, 3]));
+            assert(fakePiecesHavePropertyInCommon.calledThrice);
         });
 
-        it('recognizes [0 1 2 3] as winning', () => {
-            assert.equal(quarto.isWinningSet([0, 1, 2, 3]), true);
+        it('returns false on not winning', () => {
+            fakePiecesHavePropertyInCommon.returns(false);
+            assert(!quarto.isWinningSet([0, 1, 2, 3]));
+            assert.equal(fakePiecesHavePropertyInCommon.callCount, 4);
         });
 
-        it('recognizes a non winning set', () => {
-            assert.equal(quarto.isWinningSet([1, 2, 4, 8]), false);
+        it('properly uses piecesHavePropertyInCommon', () => {
+            fakePiecesHavePropertyInCommon.onCall(2).returns(false);
+            fakePiecesHavePropertyInCommon.returns(true);
+            quarto.isWinningSet([0, 1, 2, 3]);
+            assert.deepStrictEqual(fakePiecesHavePropertyInCommon.args, [
+                [0, 1, 0],
+                [0, 2, 0],
+                [0, 3, 0],
+                [0, 1, 1],
+                [0, 2, 1],
+                [0, 3, 1]
+            ]);
+        });
+
+        it('breaks in the middle', () => {
+            fakePiecesHavePropertyInCommon.onCall(1).returns(false);
+            fakePiecesHavePropertyInCommon.onCall(4).returns(false);
+            fakePiecesHavePropertyInCommon.onCall(6).returns(false);
+            fakePiecesHavePropertyInCommon.onCall(9).returns(false);
+            fakePiecesHavePropertyInCommon.returns(true);
+            assert(!quarto.isWinningSet([0, 1, 2, 3]));
+            assert.equal(fakePiecesHavePropertyInCommon.callCount, 10);
+        });
+
+        it('cancels early if pieces are negative', () => {            
+            assert(!quarto.isWinningSet([0, 4, 16, -1]));
+            assert(!fakePiecesHavePropertyInCommon.called);
         });
     });
 
     describe('hasWinningRow', () => {
-        it('wins if won', () => {
-            assert.equal(
-                quarto.hasWinningRow([
-                    -1, 3, -1, -1,
-                    1, 2, 4, 8,
-                    5, 7, 11, 13,
-                    -1, -1, -1, -1
-                ]),
-                true
-            );
+        const quarto = rewire('./quarto');
+        const fakeIsWinningSet = sinon.stub();
+        quarto.__set__('isWinningSet', fakeIsWinningSet);
+
+        const board = [
+            0, 1, 2, 3,
+            4, 5, 6, 7,
+            8, 9, 10, 11,
+            12, 13, 14, 15
+        ];
+
+        beforeEach(() => fakeIsWinningSet.reset());
+
+        it('calls isWinningSet with all rows', () => {
+            fakeIsWinningSet.returns(false);
+            quarto.hasWinningRow(board);
+            assert.deepStrictEqual(fakeIsWinningSet.args, [
+                [[0, 1, 2, 3]],
+                [[4, 5, 6, 7]],
+                [[8, 9, 10, 11]],
+                [[12, 13, 14, 15]]
+            ]);
         });
 
-        it('doesnt win if not', () => {
-            assert.equal(
-                quarto.hasWinningRow([
-                    -1, -1, -1, -1,
-                    1, 2, 4, 8,
-                    10, 12, -1, 0,
-                    -1, 7, -1, -1
-                ]),
-                false
-            );
+        it('returns true on win', () => {
+            fakeIsWinningSet.returns(true);
+            assert(quarto.hasWinningRow(board));
+        });
+
+        it('returns true if the third row wins', () => {
+            fakeIsWinningSet.returns(false);
+            fakeIsWinningSet.onThirdCall().returns(true);
+            assert(quarto.hasWinningRow(board));
+            assert(fakeIsWinningSet.calledThrice);
+        });
+
+        it('returns false when not won', () => {
+            fakeIsWinningSet.returns(false);
+            assert(!quarto.hasWinningRow(board));
         });
     });
 
     describe('hasWinningColumn', () => {
-        it('wins if won', () => {
-            assert.equal(
-                quarto.hasWinningColumn([
-                    -1, 1, 5, -1,
-                    3, 2, 7, -1,
-                    -1, 4, 11, -1,
-                    -1, 8, 13, -1
-                ]),
-                true
-            );
+        const quarto = rewire('./quarto');
+        const fakeIsWinningSet = sinon.stub();
+        quarto.__set__('isWinningSet', fakeIsWinningSet);
+
+        const board = [
+            0, 1, 2, 3,
+            4, 5, 6, 7,
+            8, 9, 10, 11,
+            12, 13, 14, 15
+        ];
+
+        beforeEach(() => fakeIsWinningSet.reset());
+
+        it('calls isWinningSet with all columns', () => {
+            fakeIsWinningSet.returns(false);
+            quarto.hasWinningColumn(board);
+            assert.deepStrictEqual(fakeIsWinningSet.args, [
+                [[0, 4, 8, 12]],
+                [[1, 5, 9, 13]],
+                [[2, 6, 10, 14]],
+                [[3, 7, 11, 15]]
+            ]);
         });
 
-        it('doesnt win if not', () => {
-            assert.equal(
-                quarto.hasWinningColumn([
-                    -1, 1, 10, -1,
-                    -1, 2, 12, 7,
-                    -1, 4, -1, -1,
-                    -1, 8, 0, -1
-                ]),
-                false
-            );
+        it('returns true on win', () => {
+            fakeIsWinningSet.returns(true);
+            assert(quarto.hasWinningColumn(board));
+        });
+
+        it('returns true if the third col wins', () => {
+            fakeIsWinningSet.returns(false);
+            fakeIsWinningSet.onThirdCall().returns(true);
+            assert(quarto.hasWinningColumn(board));
+            assert(fakeIsWinningSet.calledThrice);
+        });
+
+        it('returns false when not won', () => {
+            fakeIsWinningSet.returns(false);
+            assert(!quarto.hasWinningColumn(board));
         });
     });
 
     describe('hasWinningDiagonal', () => {
-        it('recognizes a / win', () => {
-            assert.equal(
-                quarto.hasWinningDiagonal([
-                    -1, 3, -1, 13,
-                    1, 2, 11, 8,
-                    0, 7, 9, 14,
-                    5, -1, -1, -1
-                ]),
-                true
-            );
+        const quarto = rewire('./quarto');
+        const fakeIsWinningSet = sinon.stub();
+        quarto.__set__('isWinningSet', fakeIsWinningSet);
+
+        const board = [
+            0, 1, 2, 3,
+            4, 5, 6, 7,
+            8, 9, 10, 11,
+            12, 13, 14, 15
+        ];
+
+        beforeEach(() => fakeIsWinningSet.reset());
+
+        it('calls isWinningSet with both diagonals', () => {
+            fakeIsWinningSet.returns(false);
+            quarto.hasWinningDiagonal(board);
+            assert.deepStrictEqual(fakeIsWinningSet.args, [
+                [[0, 5, 10, 15]],
+                [[3, 6, 9, 12]]
+            ]);
         });
 
-        it('recognizes a \\ win', () => {
-            assert.equal(
-                quarto.hasWinningDiagonal([
-                    13, -1, 3, -1,
-                    8, 11, 2, 1,
-                    14, 9, 7, 0,
-                    -1, -1, -1, 5
-                ]),
-                true
-            );
+        it('returns true on win', () => {
+            fakeIsWinningSet.returns(true);
+            assert(quarto.hasWinningDiagonal(board));
         });
-    });*/
+
+        it('returns true if the second diagonal wins', () => {
+            fakeIsWinningSet.returns(false);
+            fakeIsWinningSet.onSecondCall().returns(true);
+            assert(quarto.hasWinningDiagonal(board));
+            assert(fakeIsWinningSet.calledTwice);
+        });
+
+        it('returns false when not won', () => {
+            fakeIsWinningSet.returns(false);
+            assert(!quarto.hasWinningDiagonal(board));
+        });
+    });
+
+    describe('hasWinningSquare', () => {
+        const quarto = rewire('./quarto');
+        const fakeIsWinningSet = sinon.stub();
+        quarto.__set__('isWinningSet', fakeIsWinningSet);
+
+        const board = [
+            0, 1, 2, 3,
+            4, 5, 6, 7,
+            8, 9, 10, 11,
+            12, 13, 14, 15
+        ];
+
+        beforeEach(() => fakeIsWinningSet.reset());
+
+        it('calls isWinningSet with both diagonals', () => {
+            fakeIsWinningSet.returns(false);
+            quarto.hasWinningSquare(board);
+            assert.deepStrictEqual(fakeIsWinningSet.args, [
+                [[0, 1, 4, 5]],
+                [[1, 2, 5, 6]],
+                [[2, 3, 6, 7]],
+                [[4, 5, 8, 9]],
+                [[5, 6, 9, 10]],
+                [[6, 7, 10, 11]],
+                [[8, 9, 12, 13]],
+                [[9, 10, 13, 14]],
+                [[10, 11, 14, 15]]
+            ]);
+        });
+
+        it('returns true on win', () => {
+            fakeIsWinningSet.returns(true);
+            assert(quarto.hasWinningSquare(board));
+        });
+
+        it('returns true if the 5th square wins', () => {
+            fakeIsWinningSet.returns(false);
+            fakeIsWinningSet.onCall(4).returns(true);
+            assert(quarto.hasWinningSquare(board));
+            assert.equal(fakeIsWinningSet.callCount, 5);
+        });
+
+        it('returns false when not won', () => {
+            fakeIsWinningSet.returns(false);
+            assert(!quarto.hasWinningSquare(board));
+        });
+    });
 });
