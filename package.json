@@ -10,10 +10,16 @@
   "license": "ISC",
   "devDependencies": {
     "mocha": "^6.0.1",
+    "nodemon": "^1.18.10",
     "rewire": "^4.0.1",
     "sinon": "^7.2.5"
   },
   "dependencies": {
-    "jimp": "^0.6.0"
+    "@slack/client": "^4.10.0",
+    "@slack/interactive-messages": "^1.1.0",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "jimp": "^0.6.0",
+    "node-fetch": "^2.3.0"
   }
 }

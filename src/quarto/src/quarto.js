@@ -6,7 +6,7 @@ const Jimp = require('jimp');
  * @param {string} player1 
  * @param {string} player2 
  */
-const newGame = (player1, player2) => {
+const newGame = (player1, player2, advancedRules) => {
     return {
         board: [
             -1, -1, -1, -1,
@@ -19,7 +19,7 @@ const newGame = (player1, player2) => {
         pieceOnOffer: null,
         drawBeingOffered: false,
         gameOver: false,
-        advancedRules: false,
+        advancedRules,
         players: [player1, player2]
     };
 }
@@ -301,7 +301,7 @@ const quarToPng = async (game) => {
             }
         });
 
-        boardImg.write('./out.png');
+        return boardImg.getBufferAsync(Jimp.MIME_PNG);
     } catch(e) {
         console.log(e);
     }

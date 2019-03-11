@@ -1,4 +1,5 @@
 const readline = require('readline');
+const fs = require('fs');
 const Quarto = require('./quarto/src/quarto');
 
 let game = Quarto.newGame('banana', 'mananman');
@@ -49,7 +50,9 @@ const handleLine = (line) => {
             }
         }
 
-        Quarto.quarToPng(game);
+        Quarto.quarToPng(game).then((buffer) => {
+            fs.writeFileSync('./out.png', buffer);
+        }).catch((e) => console.log(e));
         rl.prompt();
     }
 }
