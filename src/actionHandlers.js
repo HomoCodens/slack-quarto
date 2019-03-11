@@ -112,8 +112,29 @@ const acceptChallenge = async (payload, respond) => {
         const channelId = state.channel;
 
         const players = Math.random() > 0.5 ? [challengerId, opponentId] : [opponentId, challengerId];
+        const challengerStarts = players[0] === challengerId;
 
         state.game = Quarto.newGame(players[0], players[1], state.advancedRules);
+
+        await db.set(gameId, state);
+
+        if(challengerStarts) {
+            respond({
+                text: `Alright! <@${challengerId}> will start.`
+            });
+        } else {
+            respond({
+                text: 'Alright! You get the first turn!'
+            });
+            messageUser(challengerId, channelId, {
+                text: `<@${opponentId}> accepted your challenge and got the first turn!`
+            });
+        }
+
+        getPieceOffer(gameId);
+    } catch(e) {
+        console.log(e);
+    }
 }
 
 const handleDeclineChallenge = {
@@ -157,9 +178,80 @@ const declineChallenge = async (payload, respond) => {
     });
 }
 
+// Todo: get this dynamically
+const getGameImageURL = (game) => `https://afefd82d.ngrok.io/slackuarto/render/${game.board.map((e) => e < 0 ? '' : `${e}`).join(',')};${game.pieceOnOffer ? game.pieceOnOffer : ''}.png`;
+
+const getPieceOffer = async (gameId) => {
+    const state = await db.get(gameId);
+    const { game } = state;
+
+    console.log(getGameImageURL(game));
+
+    try {
+        await messageUser(Quarto.getActivePlayerName(game), state.channel, {
+            blocks: [
+                {
+                    type: 'image',
+                    alt_text: 'board',
+                    image_url: getGameImageURL(game)
+                },
+                {
+                    type: 'section',
+                    text: {
+                        type: 'plain_text',
+                        text: 'Select a piece to offer...'
+                    }
+                },
+                {
+                    type: 'actions',
+                    block_id: gameId,
+                    elements: [
+                        {
+                            type: 'static_select',
+                            action_id: 'quarto_select_piece',
+                            options: Quarto.getRemainingPieces(game).map((e) => {
+                                        const eStr = `${e}`;
+                                        return {
+                                            text: {
+                                                type: 'plain_text',
+                                                text: eStr
+                                            },
+                                            value: eStr
+                                        }
+                                    })
+                        }
+                    ]
+                }
+            ]
+        });
+    } catch(e) {
+        console.log(e);
+    }
+}
+
+const handleSelectPiece = {
+    match: {
+        actionId: 'quarto_select_piece'
+    },
+    handle: async (payload, respond) => {
+        return {
+            blocks: [
+                {
+                    type: 'section',
+                    text: {
+                        type: 'plain_text',
+                        text: 'hello, i am replacement'
+                    }
+                }
+            ]
+        }
+    }
+}
+
 module.exports = {
     handleChallengeBasic,
     handleChallengeAdvanced,
     handleAcceptChallenge,
-    handleDeclineChallenge
+    handleDeclineChallenge,
+    handleSelectPiece
 }

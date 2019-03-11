@@ -21,11 +21,6 @@ app.post('/slackuarto/commands',
 const slackSigningSecret = '2589d910c0e367a92d2fefe5c88ab1c4';
 const slackInteractions = createMessageAdapter(slackSigningSecret);
 
-slackInteractions.action('dropdown', (payload, respond) => {
-    console.log('options handler');
-    console.log(payload);
-});
-
 for(let k in actionHandlers) {
     slackInteractions.action(actionHandlers[k].match, actionHandlers[k].handle);
 }
