@@ -289,6 +289,19 @@ const handleClaim = {
     }
 }
 
+const handleResign = {
+    match: {
+        actionId: 'quarto_resign'
+    },
+    handle: async (payload, respond) => {
+        const gameId = payload.actions[0].value;
+        const state = await db.get(gameId);
+        state.activePlayerResigned = true;
+
+        await postToChannel(state.channel, screens.gameEndScreen(state));
+    }
+}
+
 module.exports = {
     handleChallengeBasic,
     handleChallengeAdvanced,
@@ -298,5 +311,6 @@ module.exports = {
     handleOfferPiece,
     handleSelectPlacement,
     handlePlacement,
-    handleClaim
+    handleClaim,
+    handleResign
 }

@@ -176,6 +176,37 @@ const pieceSelection = (gameId, state) => {
         )
     }
 
+    blocks.push({
+        type: 'actions',
+        elements: [{
+            type: 'button',
+            text: {
+                type: 'plain_text',
+                text: 'Resign'
+            },
+            value: gameId,
+            action_id: 'quarto_resign',
+            confirm: {
+                title: {
+                    type: 'plain_text',
+                    text: 'Are you sure?'
+                },
+                text: {
+                    type: 'mrkdwn',
+                    text: 'Do you _really_ want to throw the towel?'
+                },
+                confirm: {
+                    type: 'plain_text',
+                    text: 'Yes, I\'m sure'
+                },
+                deny: {
+                    type: 'plain_text',
+                    text: 'No'
+                }
+            }
+        }]
+    });
+
     return {
         blocks
     }
@@ -279,6 +310,12 @@ const turnSummary = (state) => {
 }
 
 const gameEndScreen = (state) => {
+    const { activePlayerResigned, game } = state;
+
+    const statusMessage = activePlayerResigned ?
+                            `<@${Quarto.getActivePlayerName(game)}> resigned. <@${game.players[1 - game.activePlayer]}> wins!` : 
+                            `<@${game.winningPlayer}> wins!`
+
     return {
         blocks: [
             {
@@ -292,7 +329,7 @@ const gameEndScreen = (state) => {
                 type: 'section',
                 text: {
                     type: 'mrkdwn',
-                    text: `<@${state.game.winningPlayer}> wins!`
+                    text: statusMessage
                 }
             },
             {
