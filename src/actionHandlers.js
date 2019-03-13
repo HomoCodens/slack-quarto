@@ -1,6 +1,15 @@
 const db = require('./db');
-const { messageUser } = require('./slack');
+const { messageUser, postToChannel } = require('./slack');
 const Quarto = require('./quarto');
+const screens = require('./screens');
+
+const stateSwitchPlayers = (state) => {
+    state.pieceOnOffer = null;
+    state.possiblePlacement = null;
+    state.triedForVictory = false;
+
+    return state;
+}
 
 const handleChallengeBasic = {
     match: {
@@ -33,48 +42,15 @@ const handleChallenge = async (payload, respond, advancedRules) => {
         const [challengerId, opponentId] = state.players;
         const channelId = state.channel;
 
-        await db.set(gameId, {
+        const newState = {
             ...state,
             accepted: false,
             advancedRules
-        });
+        };
 
-        await messageUser(opponentId, channelId, {
-            blocks: [
-                {
-                    type: 'section',
-                    text: {
-                        type: 'mrkdwn',
-                        text: `<@${challengerId}> would like to play a game of Quarto using ${advancedRules ? 'advanced' : 'basic'} rules.`
-                    }
-                },
-                {
-                    type: 'actions',
-                    elements: [
-                        {
-                            type: 'button',
-                            text: {
-                                type: 'plain_text',
-                                text: 'Accept',
-                                emoji: true
-                            },
-                            value: gameId,
-                            action_id: 'quarto_accept_challenge'
-                        },
-                        {
-                            type: 'button',
-                            text: {
-                                type: 'plain_text',
-                                text: 'Decline',
-                                emoji: true
-                            },
-                            value: gameId,
-                            action_id: 'quarto_decline_challenge'
-                        }
-                    ]
-                }
-            ]
-        });
+        await db.set(gameId, newState);
+
+        await messageUser(opponentId, channelId, screens.challengeScreen(gameId, newState));
     } catch(e) {
         console.log(e);
         db.del(gameId);
@@ -178,52 +154,12 @@ const declineChallenge = async (payload, respond) => {
     });
 }
 
-// Todo: get this dynamically
-const getGameImageURL = (game) => `https://afefd82d.ngrok.io/slackuarto/render/${game.board.map((e) => e < 0 ? '' : `${e}`).join(',')};${game.pieceOnOffer ? game.pieceOnOffer : ''}.png`;
-
 const getPieceOffer = async (gameId) => {
     const state = await db.get(gameId);
     const { game } = state;
 
-    console.log(getGameImageURL(game));
-
     try {
-        await messageUser(Quarto.getActivePlayerName(game), state.channel, {
-            blocks: [
-                {
-                    type: 'image',
-                    alt_text: 'board',
-                    image_url: getGameImageURL(game)
-                },
-                {
-                    type: 'section',
-                    text: {
-                        type: 'plain_text',
-                        text: 'Select a piece to offer...'
-                    }
-                },
-                {
-                    type: 'actions',
-                    block_id: gameId,
-                    elements: [
-                        {
-                            type: 'static_select',
-                            action_id: 'quarto_select_piece',
-                            options: Quarto.getRemainingPieces(game).map((e) => {
-                                        const eStr = `${e}`;
-                                        return {
-                                            text: {
-                                                type: 'plain_text',
-                                                text: eStr
-                                            },
-                                            value: eStr
-                                        }
-                                    })
-                        }
-                    ]
-                }
-            ]
-        });
+        await messageUser(Quarto.getActivePlayerName(game), state.channel, screens.pieceSelection(gameId, state));
     } catch(e) {
         console.log(e);
     }
@@ -234,16 +170,121 @@ const handleSelectPiece = {
         actionId: 'quarto_select_piece'
     },
     handle: async (payload, respond) => {
-        return {
-            blocks: [
-                {
-                    type: 'section',
-                    text: {
-                        type: 'plain_text',
-                        text: 'hello, i am replacement'
-                    }
-                }
-            ]
+        const gameId = payload.actions[0].block_id;
+        const selectedPiece = +payload.actions[0].selected_option.value;
+
+        const state = await db.get(gameId);
+        state.pieceOnOffer = selectedPiece;
+        await db.set(gameId, state);
+
+        respond(screens.pieceSelection(gameId, state));
+    }
+}
+
+const handleOfferPiece = {
+    match: {
+        actionId: 'quarto_offer_piece'
+    },
+    handle: async (payload, respond) => {
+        try{
+            console.log(payload);
+            const gameId = payload.actions[0].value;
+            let state = await db.get(gameId);
+            let { game } = state;
+
+            state.game = Quarto.play(game, {
+                player: Quarto.getActivePlayerName(game),
+                type: 'OFFER_PIECE',
+                data: state.pieceOnOffer
+            });
+
+            state = stateSwitchPlayers(state);
+
+            await db.set(gameId, state);
+
+            await postToChannel(state.channel, screens.turnSummary(state));
+
+            await messageUser(Quarto.getActivePlayerName(state.game), state.channel, screens.piecePlacement(gameId, state));
+
+            respond({
+                text: `It's now their turn.`
+            });
+        } catch(e) {
+            console.log(e);
+        }
+    }
+}
+
+const handleSelectPlacement = {
+    match: {
+        actionId: 'quarto_select_placement'
+    },
+    handle: async (payload, respond) => {
+        const gameId = payload.actions[0].block_id;
+        let state = await db.get(gameId);
+
+        state.possiblePlacement = payload.actions[0].selected_option.value;
+
+        await db.set(gameId, state);
+
+        respond(screens.piecePlacement(gameId, state));
+    }
+}
+
+const handlePlacement = {
+    match: {
+        actionId: 'quarto_place_piece',
+    },
+    handle: async (payload, respond) => {
+        const gameId = payload.actions[0].value;
+        let state = await db.get(gameId);
+        let { game } = state;
+
+        state.game = Quarto.play(game, {
+            player: Quarto.getActivePlayerName(game),
+            type: 'PLACE',
+            data: state.possiblePlacement
+        });
+
+        state = stateSwitchPlayers(state);
+
+        await db.set(gameId, state);
+        
+        respond({
+            text: 'Placed!'
+        });
+
+        getPieceOffer(gameId);
+    }
+}
+
+const handleClaim = {
+    match: {
+        actionId: 'quarto_claim_victory'
+    },
+    handle: async (payload, respond) => {
+        try {
+            const gameId = payload.actions[0].value;
+            let state = await db.get(gameId);
+            state.triedForVictory = true;
+
+            let { game } = state;
+            state.game = Quarto.play(game, {
+                player: Quarto.getActivePlayerName(game),
+                type: 'CLAIM'
+            });
+
+            if(state.game.gameOver) {
+                await postToChannel(state.channel, screens.gameEndScreen(state));
+                respond({
+                    text: 'Yay, you win!'
+                });
+            } else {
+                await db.set(gameId, state);
+                respond(screens.pieceSelection(gameId, state));
+            }
+        } catch (e) {
+            console.log(e);
         }
     }
 }
@@ -253,5 +294,9 @@ module.exports = {
     handleChallengeAdvanced,
     handleAcceptChallenge,
     handleDeclineChallenge,
-    handleSelectPiece
+    handleSelectPiece,
+    handleOfferPiece,
+    handleSelectPlacement,
+    handlePlacement,
+    handleClaim
 }

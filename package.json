@@ -18,6 +18,7 @@
     "@slack/client": "^4.10.0",
     "@slack/interactive-messages": "^1.1.0",
     "body-parser": "^1.18.3",
+    "clone": "^2.1.2",
     "express": "^4.16.4",
     "jimp": "^0.6.0",
     "node-fetch": "^2.3.0"

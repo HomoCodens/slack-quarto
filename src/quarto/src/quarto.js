@@ -196,7 +196,7 @@ const setGameState = (game, newState = {}) => {
  */
 const play = (game, move) => {
     if(getActivePlayerName(game) !== move.player) {
-        return game;
+        return setGameState(game);
     }
 
     // Redux says Hi but couldn't come due to overkill
@@ -224,6 +224,7 @@ const play = (game, move) => {
                     gameOver: true
                 });
             } else {
+                console.log('nowin');
                 return setGameState(game);
             }
         case 'RESIGN':

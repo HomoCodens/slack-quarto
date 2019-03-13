@@ -36,8 +36,16 @@ const isUserInChannel = async (userId, channelId) => {
     return users.channel.members.filter((id) => id === userId).length === 1; 
 }
 
+const postToChannel = (channelId, message) => {
+    return client.chat.postMessage({
+        ...message,
+        channel: channelId
+    });
+}
+
 module.exports = {
     getUserId,
     messageUser,
-    isUserInChannel
+    isUserInChannel,
+    postToChannel
 }

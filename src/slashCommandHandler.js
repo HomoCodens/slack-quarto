@@ -1,6 +1,7 @@
 const db = require('./db');
 const { isUserInChannel, getUserId, messageUser } = require('./slack');
 const { updateResponse, getGameId } = require('./helpers');
+const screens = require('./screens');
 
 const slashCommandHandler = async (req, res) => {
     if(req.body.command === '/quarto') {
@@ -44,45 +45,13 @@ const initiateChallenge = async (req) => {
 
         db.set(gameId, {
             players: [challengerId, opponentId],
-            channel: channelId
+            channel: channelId,
+            pieceOnOffer: null,
+            possiblePlacement: null,
+            triedForVictory: false
         });
 
-        return updateResponse(responseURL, {
-            blocks: [
-                {
-                    type: 'section',
-                    text: {
-                        type: 'mrkdwn',
-                        text: 'What rules do you want to play by?'
-                    }
-                },
-                {
-                    type: 'actions',
-                    elements: [
-                        {
-                            type: 'button',
-                            text: {
-                                type: 'plain_text',
-                                text: 'Basic (lines)',
-                                emoji: true
-                            },
-                            value: gameId,
-                            action_id: 'quarto_challenge_basic'
-                        },
-                        {
-                            type: 'button',
-                            text: {
-                                type: 'plain_text',
-                                text: 'Advanced (lines & squares)',
-                                emoji: true
-                            },
-                            value: gameId,
-                            action_id: 'quarto_challenge_advanced'
-                        }
-                    ]
-                }
-            ]
-        });
+        return updateResponse(responseURL, screens.ruleSelectionScreen(gameId));
 
     } else {
         return updateResponse(responseURL, {
