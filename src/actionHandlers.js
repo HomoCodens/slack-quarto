@@ -276,6 +276,7 @@ const handleClaim = {
 
             if(state.game.gameOver) {
                 await postToChannel(state.channel, screens.gameEndScreen(state));
+                await db.del(gameId);
                 respond({
                     text: 'Yay, you win!'
                 });
@@ -299,6 +300,12 @@ const handleResign = {
         state.activePlayerResigned = true;
 
         await postToChannel(state.channel, screens.gameEndScreen(state));
+
+        await db.del(gameId);
+
+        respond({
+            text: 'You resigned!'
+        });
     }
 }
 
