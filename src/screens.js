@@ -81,11 +81,13 @@ const challengeScreen = (gameId, state) => {
 }
 
 // Todo: get this dynamically
-const getGameImageURL = (game) => `https://bd5498c9.ngrok.io/slackuarto/render/${game.board.map((e) => e < 0 ? '' : `${e}`).join(',')};${game.pieceOnOffer ? game.pieceOnOffer : ''}.png`;
+const getGameImageURL = (game) => `https://bd5498c9.ngrok.io/slackuarto/render/${game.board.map((e) => e < 0 ? '' : `${e}`).join(',')};${game.pieceOnOffer !== null ? game.pieceOnOffer : ''}.png`;
 
 const pieceSelection = (gameId, state) => {
-    const { game } = state;
+    let { game } = state;
     const pieceOffered = state.pieceOnOffer;
+
+    console.log(pieceOffered);
 
     let actionElements = [
         {
