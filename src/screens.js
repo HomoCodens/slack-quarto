@@ -83,72 +83,7 @@ const challengeScreen = (gameId, state) => {
 // Todo: get this dynamically
 const getGameImageURL = (game) => `https://bd5498c9.ngrok.io/slackuarto/render/${game.board.map((e) => e < 0 ? '' : `${e}`).join(',')};${game.pieceOnOffer !== null ? game.pieceOnOffer : ''}.png`;
 
-const pieceSelection = (gameId, state) => {
-    let { game } = state;
-    const pieceOffered = state.pieceOnOffer;
-
-    console.log(pieceOffered);
-
-    let actionElements = [
-        {
-            type: 'static_select',
-            action_id: 'quarto_select_piece',
-            options: Quarto.getRemainingPieces(game).map((e) => {
-                        const eStr = `${e}`;
-                        return {
-                            text: {
-                                type: 'plain_text',
-                                text: eStr
-                            },
-                            value: eStr
-                        }
-                    })
-        }
-    ];
-
-    if(pieceOffered !== null) {
-        actionElements[0].initial_option = {
-            text: {
-                type: 'plain_text',
-                text: `${pieceOffered}`
-            },
-            value: `${pieceOffered}`
-        };
-
-        actionElements.push({
-            type: 'button',
-            text: {
-                type: 'plain_text',
-                text: 'Offer piece'
-            },
-            value: gameId,
-            action_id: 'quarto_offer_piece'
-        });
-
-        // For rendering only
-        game.pieceOnOffer = pieceOffered;
-    }
-
-    blocks = [
-        {
-            type: 'image',
-            alt_text: 'board',
-            image_url: getGameImageURL(game)
-        },
-        {
-            type: 'section',
-            text: {
-                type: 'plain_text',
-                text: 'Select a piece to offer...'
-            }
-        },
-        {
-            type: 'actions',
-            block_id: gameId,
-            elements: actionElements
-        }
-    ];
-
+const addGameEndersToBlocks = (gameId, state, blocks) => {
     if(!state.triedForVictory) {
         blocks.push(
             {
@@ -207,6 +142,77 @@ const pieceSelection = (gameId, state) => {
         }]
     });
 
+    return blocks;
+}
+
+const pieceSelection = (gameId, state) => {
+    let { game } = state;
+    const pieceOffered = state.pieceOnOffer;
+
+    console.log(pieceOffered);
+
+    let actionElements = [
+        {
+            type: 'static_select',
+            action_id: 'quarto_select_piece',
+            options: Quarto.getRemainingPieces(game).map((e) => {
+                        const eStr = `${e}`;
+                        return {
+                            text: {
+                                type: 'plain_text',
+                                text: eStr
+                            },
+                            value: eStr
+                        }
+                    })
+        }
+    ];
+
+    if(pieceOffered !== null) {
+        actionElements[0].initial_option = {
+            text: {
+                type: 'plain_text',
+                text: `${pieceOffered}`
+            },
+            value: `${pieceOffered}`
+        };
+
+        actionElements.push({
+            type: 'button',
+            text: {
+                type: 'plain_text',
+                text: 'Offer piece'
+            },
+            value: gameId,
+            action_id: 'quarto_offer_piece'
+        });
+
+        // For rendering only
+        game.pieceOnOffer = pieceOffered;
+    }
+
+    let blocks = [
+        {
+            type: 'image',
+            alt_text: 'board',
+            image_url: getGameImageURL(game)
+        },
+        {
+            type: 'section',
+            text: {
+                type: 'plain_text',
+                text: 'Select a piece to offer...'
+            }
+        },
+        {
+            type: 'actions',
+            block_id: gameId,
+            elements: actionElements
+        }
+    ];
+
+    blocks = addGameEndersToBlocks(gameId, state, blocks);
+
     return {
         blocks
     }
@@ -253,33 +259,37 @@ const piecePlacement = (gameId, state) => {
         });
     }
 
-    return {
-        blocks: [
-            {
-                type: 'image',
-                alt_text: 'board',
-                image_url: getGameImageURL(game)
-            },
-            {
-                type: 'section',
-                text: {
-                    type: 'mrkdwn',
-                    text: `<@${game.players[1-game.activePlayer]}> is offering you a piece.`
-                }
-            },
-            {
-                type: 'section',
-                text: {
-                    type: 'plain_text',
-                    text: 'Where do you want to place the piece?'
-                }
-            },
-            {
-                type: 'actions',
-                block_id: gameId,
-                elements: actionElements
+    let blocks = [
+        {
+            type: 'image',
+            alt_text: 'board',
+            image_url: getGameImageURL(game)
+        },
+        {
+            type: 'section',
+            text: {
+                type: 'mrkdwn',
+                text: `<@${game.players[1-game.activePlayer]}> is offering you a piece.`
             }
-        ]
+        },
+        {
+            type: 'section',
+            text: {
+                type: 'plain_text',
+                text: 'Where do you want to place the piece?'
+            }
+        },
+        {
+            type: 'actions',
+            block_id: gameId,
+            elements: actionElements
+        }
+    ];
+
+    blocks = addGameEndersToBlocks(gameId, state, blocks);
+
+    return {
+        blocks
     }
 }
 
