@@ -324,7 +324,7 @@ const gameEndScreen = (state) => {
 
     const statusMessage = activePlayerResigned ?
                             `<@${Quarto.getActivePlayerName(game)}> resigned. <@${game.players[1 - game.activePlayer]}> wins!` : 
-                            `<@${game.winningPlayer}> wins!`
+                            `<@${game.players[game.winningPlayer]}> wins!`
 
     return {
         blocks: [
