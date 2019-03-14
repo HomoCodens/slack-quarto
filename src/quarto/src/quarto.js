@@ -254,6 +254,8 @@ const quarToPng = async (game) => {
 
     const tileSize = 128;
 
+    const leftOffset = 18;
+
     try {
         let boardImg = await Jimp.read(__dirname + '/../img/board.png');
         let piecesImg = await Jimp.read(__dirname + '/../img/pieces.png');
@@ -264,7 +266,7 @@ const quarToPng = async (game) => {
             const { row: pooRow, column: pooColumn } = parseIndex(pieceOnOffer);
             boardImg.blit(
                 piecesImg,
-                offeredPieceOffset.x,
+                leftOffset + offeredPieceOffset.x,
                 offeredPieceOffset.y,
                 tileSize*pooColumn,
                 tileSize*pooRow,
@@ -279,7 +281,7 @@ const quarToPng = async (game) => {
                 const { row, column } = parseIndex(i);
                 boardImg.blit(
                     piecesImg,
-                    tileSize*column,
+                    leftOffset + tileSize*column,
                     tileSize*row + boardStart,
                     tileSize*pColumn,
                     tileSize*pRow,
@@ -293,7 +295,7 @@ const quarToPng = async (game) => {
                 const {row, column } = parseIndex(p);
                 boardImg.blit(
                     piecesImg,
-                    tileSize*column,
+                    leftOffset + tileSize*column,
                     tileSize*row + boardStart + 512,
                     tileSize*column,
                     tileSize*row,
