@@ -21,7 +21,10 @@ const newGame = (player1, player2, advancedRules) => {
         gameOver: false,
         advancedRules,
         players: [player1, player2],
-        lastPlacement: null
+        lastPlacement: null,
+        winType: null,
+        winIndex: null,
+        winningFields: null
     };
 }
 
@@ -115,7 +118,8 @@ const hasWinningRow = (board, lastPlacement) => {
         return {
             isAWin: true,
             winType: 'row',
-            winIndex: row
+            winIndex: row,
+            winningFields: [4*row, 4*row+1, 4*row+2, 4*row+3]
         }
     }
 
@@ -140,7 +144,8 @@ const hasWinningColumn = (board, lastPlacement) => {
         return {
             isAWin: true,
             winType: 'row',
-            winIndex: row
+            winIndex: row,
+            winningFields: [column, column+4, column+8, column+12]
         }
     }
 
@@ -168,13 +173,15 @@ const hasWinningDiagonal = (board, lastPlacement) => {
         return {
             isAWin: true,
             winType: 'diagonal',
-            winIndex: 0
+            winIndex: 0,
+            finningFields: [0, 5, 10, 15] 
         };
     } else if(isWinningSet([board[3], board[6], board[9], board[12]])) {
         return {
             isAWin: true, 
             winType: 'diagonal',
-            winIndex: 1
+            winIndex: 1,
+            winningFields: [3, 6, 9, 12]
         };
     }
 
@@ -201,7 +208,8 @@ const hasWinningSquare = (board, lastPlacement) => {
                     return {
                         isAWin: true,
                         winType: 'square',
-                        winIndex: index
+                        winIndex: index,
+                        winningFields: indices
                     };
                 }
             }
@@ -304,13 +312,14 @@ const play = (game, move) => {
                 activePlayer: 1 - game.activePlayer
             });
         case 'CLAIM':
-            const { isAWin, winType, winIndex } = hasWinningPosition(game);
+            const { isAWin, winType, winIndex, winningFields } = hasWinningPosition(game);
             if(isAWin) {
                 return setGameState(game, {
                     winningPlayer: game.activePlayer,
                     gameOver: true,
                     winType,
-                    winIndex
+                    winIndex,
+                    winningFields
                 });
             } else {
                 return setGameState(game);
@@ -332,7 +341,7 @@ const play = (game, move) => {
     }
 }
 
-const quarToPng = async (game) => {
+const quarToPng = async (game, highlights = true) => {
     const offeredPieceOffset = {
         x: 256-64,
         y: 0
@@ -348,7 +357,7 @@ const quarToPng = async (game) => {
         let boardImg = await Jimp.read(__dirname + '/../img/board.png');
         let piecesImg = await Jimp.read(__dirname + '/../img/pieces.png');
 
-        const { pieceOnOffer, board } = game;
+        const { pieceOnOffer, board, lastPlacement, winningFields } = game;
 
         if(pieceOnOffer !== null) {
             const { row: pooRow, column: pooColumn } = parseIndex(pieceOnOffer);
@@ -391,6 +400,29 @@ const quarToPng = async (game) => {
                     tileSize);
             }
         });
+
+        if(highlights) {
+
+            let highlightImg = await Jimp.read(__dirname + '/../img/glow.png');
+
+            if(winningFields !== null) {
+                winningFields.forEach((e) => {
+                    const { row, column } = parseIndex(e);
+                    boardImg.blit(
+                        highlightImg,
+                        leftOffset + tileSize*column,
+                        tileSize*row + boardStart
+                    );
+                });
+            } else if(lastPlacement !== null) {
+                const { row, column } = parseIndex(lastPlacement);
+                boardImg.blit(
+                    highlightImg,
+                    leftOffset + tileSize*column,
+                    tileSize*row + boardStart
+                );
+            }
+        }
 
         return boardImg.getBufferAsync(Jimp.MIME_PNG);
     } catch(e) {

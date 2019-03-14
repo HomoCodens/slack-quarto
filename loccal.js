@@ -1,6 +1,6 @@
 const readline = require('readline');
 const fs = require('fs');
-const Quarto = require('./quarto/src/quarto');
+const Quarto = require('./src/quarto/src/quarto');
 
 let game = Quarto.newGame('banana', 'mananman');
 let state = 'awaiting_offer';
@@ -18,7 +18,11 @@ const handleLine = (line) => {
     } else {
         if(state == 'awaiting_offer') {
             if(line === 'claim') {
-                if(Quarto.hasWinningPosition(game)) {
+                game = Quarto.play(game, {
+                    player: Quarto.getActivePlayerName(game),
+                    type: 'CLAIM'
+                });
+                if(game.gameOver) {
                     console.log('indeedy');
                     rl.close();
                 } else {
