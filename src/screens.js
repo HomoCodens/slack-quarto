@@ -81,7 +81,15 @@ const challengeScreen = (gameId, state) => {
 }
 
 // Todo: get this dynamically
-const getGameImageURL = (game) => `https://bd5498c9.ngrok.io/slackuarto/render/${game.board.map((e) => e < 0 ? '' : `${e}`).join(',')};${game.pieceOnOffer !== null ? game.pieceOnOffer : ''}.png`;
+const getGameImageURL = (game) => `https://bd5498c9.ngrok.io/slackuarto/render/${
+                            game.board.map((e) => e < 0 ? '' : `${e}`).join(',')
+                        };${
+                            game.pieceOnOffer !== null ? game.pieceOnOffer : ''
+                        };${
+                            game.lastPlacement !== null ? game.lastPlacement : ''
+                        };${
+                            game.winningFields !== null ? game.winningFields.map((e) => `${e}`).join(',') : ''
+                        }.png`;
 
 const addGameEndersToBlocks = (gameId, state, blocks) => {
     if(!state.triedForVictory) {
