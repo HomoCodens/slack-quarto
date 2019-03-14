@@ -20,7 +20,8 @@ const newGame = (player1, player2, advancedRules) => {
         drawBeingOffered: false,
         gameOver: false,
         advancedRules,
-        players: [player1, player2]
+        players: [player1, player2],
+        lastPlacement: null
     };
 }
 
@@ -98,65 +99,150 @@ const isWinningSet = (pieces) => {
 /**
  * Checks whether there is a win by row on the board
  * @param {Piece[]} board 
+ * @param {integer} lastPlacement
  */
-const hasWinningRow = (board) => {
-    for(let r = 0; r < 4; r++) {
-        const row = [board[4*r], board[4*r+1], board[4*r+2], board[4*r+3]];
-        if(isWinningSet(row)) {
-            return true;
+const hasWinningRow = (board, lastPlacement) => {
+
+    if(lastPlacement === null) {
+        return { isAWin: false };
+    }
+
+    const { row, column } = parseIndex(lastPlacement);
+
+    const boardRow = [board[4*row], board[4*row+1], board[4*row+2], board[4*row+3]];
+
+    if(isWinningSet(boardRow)) {
+        return {
+            isAWin: true,
+            winType: 'row',
+            winIndex: row
         }
     }
-    return false;
+
+    return { isAWin: false };
 }
 
 /**
  * Checks whether there is a win by column on the board
  * @param {Piece[]} board 
+ * @param {integer} lastPlacement
  */
-const hasWinningColumn = (board) => {
-    for(let c = 0; c < 4; c++) {
-        let column = [board[c], board[c+4], board[c+8], board[c+12]];
-        if(isWinningSet(column)) {
-            return true;
+const hasWinningColumn = (board, lastPlacement) => {
+    if(lastPlacement === null) {
+        return { isAWin: false };
+    }
+
+    const { row, column } = parseIndex(lastPlacement);
+
+    const boardColumn = [board[column], board[column+4], board[column+8], board[column+12]];
+
+    if(isWinningSet(boardColumn)) {
+        return {
+            isAWin: true,
+            winType: 'row',
+            winIndex: row
         }
     }
-    return false;
+
+    return { isAWin: false };
 }
 
 /**
  * Checks whether there is a win by diagonal on the board
- * @param {Piece[]} board 
+ * @param {Piece[]} board
+ * @param {integer} lastPlacement
  */
-const hasWinningDiagonal = (board) => {
-    return isWinningSet([board[0], board[5], board[10], board[15]]) ||
-            isWinningSet([board[3], board[6], board[9], board[12]]);
+const hasWinningDiagonal = (board, lastPlacement) => {
+
+    if(lastPlacement === null) {
+        return { isAWin: false };
+    }
+
+    const { row, column } = parseIndex(lastPlacement);
+
+    if(!(row === column || row + column === 5)) {
+        return { isAWin: false };
+    }
+
+    if(isWinningSet([board[0], board[5], board[10], board[15]])) {
+        return {
+            isAWin: true,
+            winType: 'diagonal',
+            winIndex: 0
+        };
+    } else if(isWinningSet([board[3], board[6], board[9], board[12]])) {
+        return {
+            isAWin: true, 
+            winType: 'diagonal',
+            winIndex: 1
+        };
+    }
+
+    return { isAWin: false };
 }
 
 /**
  * Checks whether any of the 9 squares on the board wins
  * @param {Piece[]} board 
+ * @param {integer} lastPlacement
  */
-const hasWinningSquare = (board) => {
+const hasWinningSquare = (board, lastPlacement) => {
+    if(lastPlacement === null) {
+        return { isAWin: false };
+    }
+
     for(let r = 0; r < 3; r++) {
         for(let c = 0; c < 3; c++) {
-            let index = 4*r+c;
-            let square = [board[index], board[index+1], board[index+4], board[index+5]];
-            if(isWinningSet(square)) {
-                return true;
+            const index = 4*r+c;
+            const indices = [index, index+1, index+4, index+5];
+            if(indices.indexOf(lastPlacement) >= 0) {
+                const square = indices.map((e) => board[e]);
+                if(isWinningSet(square)) {
+                    return {
+                        isAWin: true,
+                        winType: 'square',
+                        winIndex: index
+                    };
+                }
             }
         }
     }
-    return false;
+    return { isAWin: false };
 }
 
 /**
  * Checks whether there is a win on the board
  * @param {Quarto} game 
  */
-const hasWinningPosition = ({ board, advancedRules }) => hasWinningRow(board) ||
-                                                            hasWinningColumn(board) ||
-                                                            hasWinningDiagonal(board) ||
-                                                            (advancedRules && hasWinningSquare(board));
+const hasWinningPosition = ({ board, advancedRules, lastPlacement }) => {
+    if(lastPlacement === null) {
+        return { isAWin: false };
+    }
+
+    const byRow = hasWinningRow(board, lastPlacement);
+    if(byRow.isAWin) {
+        return byRow;
+    }
+    
+    const byCol = hasWinningColumn(board, lastPlacement);
+    if(byCol.isAWin) {
+        return byCol;
+    }
+
+    const byDiag = hasWinningDiagonal(board, lastPlacement);
+    if(byDiag.isAWin) {
+        return byDiag;
+    }
+
+    if(advancedRules) {
+        const bySquare = hasWinningSquare(board, lastPlacement);
+        if(bySquare.isAWin) {
+            return bySquare;
+        }
+    }
+
+    return { isAWin: false };
+}
 
 const seq = (n) => Array.from(new Array(n), (e, i) => i);
 
@@ -207,7 +293,7 @@ const play = (game, move) => {
             const { index } = parsePosition(move.data);
             nextBoard[index] = game.pieceOnOffer;
 
-            return setGameState(game, { board: nextBoard, pieceOnOffer: null });
+            return setGameState(game, { board: nextBoard, pieceOnOffer: null, lastPlacement: index });
         case 'OFFER_PIECE':
             if(game.pieceOnOffer !== null) {
                 return setGameState(game);
@@ -218,13 +304,15 @@ const play = (game, move) => {
                 activePlayer: 1 - game.activePlayer
             });
         case 'CLAIM':
-            if(hasWinningPosition(game)) {
+            const { isAWin, winType, winIndex } = hasWinningPosition(game);
+            if(isAWin) {
                 return setGameState(game, {
                     winningPlayer: game.activePlayer,
-                    gameOver: true
+                    gameOver: true,
+                    winType,
+                    winIndex
                 });
             } else {
-                console.log('nowin');
                 return setGameState(game);
             }
         case 'RESIGN':

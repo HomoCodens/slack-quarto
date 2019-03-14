@@ -328,7 +328,7 @@ const gameEndScreen = (state) => {
     } else if(isDraw) {
         statusMessage = `The game is a draw!`;
     } else {
-        statusMessage = activePlayerResigned = `<@${game.players[game.winningPlayer]}> wins!`;
+        statusMessage = `<@${game.players[game.winningPlayer]}> wins!`;
     }
 
     return {
