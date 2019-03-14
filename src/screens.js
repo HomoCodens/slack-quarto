@@ -320,11 +320,16 @@ const turnSummary = (state) => {
 }
 
 const gameEndScreen = (state) => {
-    const { activePlayerResigned, game } = state;
+    const { activePlayerResigned, isDraw, game } = state;
 
-    const statusMessage = activePlayerResigned ?
-                            `<@${Quarto.getActivePlayerName(game)}> resigned. <@${game.players[1 - game.activePlayer]}> wins!` : 
-                            `<@${game.players[game.winningPlayer]}> wins!`
+    let statusMessage = '';
+    if(activePlayerResigned) {
+        statusMessage = `<@${Quarto.getActivePlayerName(game)}> resigned. <@${game.players[1 - game.activePlayer]}> wins!`;
+    } else if(isDraw) {
+        statusMessage = `The game is a draw!`;
+    } else {
+        statusMessage = activePlayerResigned = `<@${game.players[game.winningPlayer]}> wins!`;
+    }
 
     return {
         blocks: [

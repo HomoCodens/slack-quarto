@@ -240,11 +240,13 @@ const handlePlacement = {
         let state = await db.get(gameId);
         let { game } = state;
 
-        state.game = Quarto.play(game, {
+        game = Quarto.play(game, {
             player: Quarto.getActivePlayerName(game),
             type: 'PLACE',
             data: state.possiblePlacement
         });
+
+        state.game = game;
 
         state = stateSwitchPlayers(state);
 
@@ -254,7 +256,26 @@ const handlePlacement = {
             text: 'Placed!'
         });
 
-        getPieceOffer(gameId);
+        if(Quarto.getOpenSpaces(game).length > 0) {
+            getPieceOffer(gameId);
+        } else {
+            // Just try for win by default, users will always click it anyway
+            game = Quarto.play({
+                type: 'CLAIM',
+                player: Quarto.getActivePlayerName(game)
+            });
+
+            state.game = game;
+
+            if(game.winningPlayer === null) {
+                state.isDraw = true;
+            }
+            await postToChannel(state.channel, screens.gameEndScreen(state));
+            await db.del(gameId);
+            respond({
+                text: 'Game over'
+            });
+        }
     }
 }
 
