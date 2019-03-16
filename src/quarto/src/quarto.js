@@ -21,7 +21,7 @@ const newGame = (player1, player2, advancedRules) => {
         gameOver: false,
         advancedRules,
         players: [player1, player2],
-        lastPlacement: null,
+        lastPlacements: [null],
         winType: null,
         winIndex: null,
         winningFields: null
@@ -222,30 +222,31 @@ const hasWinningSquare = (board, lastPlacement) => {
  * Checks whether there is a win on the board
  * @param {Quarto} game 
  */
-const hasWinningPosition = ({ board, advancedRules, lastPlacement }) => {
-    if(lastPlacement === null) {
-        return { isAWin: false };
-    }
+const hasWinningPosition = ({ board, advancedRules, lastPlacements }) => {
 
-    const byRow = hasWinningRow(board, lastPlacement);
-    if(byRow.isAWin) {
-        return byRow;
-    }
-    
-    const byCol = hasWinningColumn(board, lastPlacement);
-    if(byCol.isAWin) {
-        return byCol;
-    }
-
-    const byDiag = hasWinningDiagonal(board, lastPlacement);
-    if(byDiag.isAWin) {
-        return byDiag;
-    }
-
-    if(advancedRules) {
-        const bySquare = hasWinningSquare(board, lastPlacement);
-        if(bySquare.isAWin) {
-            return bySquare;
+    for(let lp of lastPlacements) {
+        if(lp !== null) {
+            const byRow = hasWinningRow(board, lp);
+            if(byRow.isAWin) {
+                return byRow;
+            }
+            
+            const byCol = hasWinningColumn(board, lp);
+            if(byCol.isAWin) {
+                return byCol;
+            }
+        
+            const byDiag = hasWinningDiagonal(board, lp);
+            if(byDiag.isAWin) {
+                return byDiag;
+            }
+        
+            if(advancedRules) {
+                const bySquare = hasWinningSquare(board, lp);
+                if(bySquare.isAWin) {
+                    return bySquare;
+                }
+            }
         }
     }
 
@@ -297,11 +298,12 @@ const play = (game, move) => {
     switch(move.type) {
         case 'PLACE':
             let nextBoard = [...game.board];
+            let lastPlacements = game.lastPlacements;
 
             const { index } = parsePosition(move.data);
             nextBoard[index] = game.pieceOnOffer;
 
-            return setGameState(game, { board: nextBoard, pieceOnOffer: null, lastPlacement: index });
+            return setGameState(game, { board: nextBoard, pieceOnOffer: null, lastPlacements: [...lastPlacements, index] });
         case 'OFFER_PIECE':
             if(game.pieceOnOffer !== null) {
                 return setGameState(game);
@@ -309,7 +311,8 @@ const play = (game, move) => {
 
             return setGameState(game, {
                 pieceOnOffer: move.data,
-                activePlayer: 1 - game.activePlayer
+                activePlayer: 1 - game.activePlayer,
+                lastPlacements: [game.lastPlacements[1]]
             });
         case 'CLAIM':
             const { isAWin, winType, winIndex, winningFields } = hasWinningPosition(game);
@@ -357,7 +360,9 @@ const quarToPng = async (game, highlights = true) => {
         let boardImg = await Jimp.read(__dirname + '/../img/board.png');
         let piecesImg = await Jimp.read(__dirname + '/../img/pieces.png');
 
-        const { pieceOnOffer, board, lastPlacement, winningFields } = game;
+        console.log(JSON.stringify(game, null, 2));
+        const { pieceOnOffer, board, lastPlacements, winningFields } = game;
+        lastPlacement = lastPlacements[lastPlacements.length - 1];
 
         if(pieceOnOffer !== null) {
             const { row: pooRow, column: pooColumn } = parseIndex(pieceOnOffer);

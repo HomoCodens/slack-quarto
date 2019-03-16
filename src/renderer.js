@@ -18,7 +18,7 @@ const renderQuarto = async (req, res, next) => {
 
     const piece_on_offer = piece_on_offer_str !== '' ? Number.parseInt(piece_on_offer_str) : null;
 
-    const last_placement = last_placement_str !== '' ? Number.parseInt(last_placement_str) : null;
+    const last_placement = last_placement_str !== '' ? [Number.parseInt(last_placement_str)] : [null];
 
     const winning_line_arr = winning_line_str !== '' ? winning_line_str.split(',').map((x) => {
         if(x.length) {
@@ -34,7 +34,7 @@ const renderQuarto = async (req, res, next) => {
         const imgStream = await Quarto.quarToPng({
             board: pieces_arr,
             pieceOnOffer: piece_on_offer,
-            lastPlacement: last_placement,
+            lastPlacements: last_placement,
             winningFields: winning_line_arr }
         );
         res.type('image/png').send(imgStream);

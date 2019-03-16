@@ -86,7 +86,7 @@ const getGameImageURL = (game) => `https://bd5498c9.ngrok.io/slackuarto/render/$
                         };${
                             game.pieceOnOffer !== null ? game.pieceOnOffer : ''
                         };${
-                            game.lastPlacement !== null ? game.lastPlacement : ''
+                            game.lastPlacements[game.lastPlacements.length - 1] !== null ? game.lastPlacements[game.lastPlacements.length - 1] : ''
                         };${
                             game.winningFields !== null ? game.winningFields.map((e) => `${e}`).join(',') : ''
                         }.png`;
