@@ -1,5 +1,6 @@
 const { WebClient } = require('@slack/client');
-const { botOAuth } = require('./config');
+
+const botOAuth = process.env.BOT_OAUTH;
 
 const client = new WebClient(botOAuth);
 

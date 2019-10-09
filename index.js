@@ -5,6 +5,8 @@ const express = require('express');
 const bodyparser = require('body-parser');
 const { createMessageAdapter } = require('@slack/interactive-messages');
 
+const signingSecret = process.env.SIGNING_SECRET;
+
 const renderer = require('./src/renderer');
 const slashCommandHandler = require('./src/slashCommandHandler');
 const actionHandlers = require('./src/actionHandlers');
@@ -18,8 +20,7 @@ app.post('/slackuarto/commands',
             slashCommandHandler
 );
 
-const slackSigningSecret = '2589d910c0e367a92d2fefe5c88ab1c4';
-const slackInteractions = createMessageAdapter(slackSigningSecret);
+const slackInteractions = createMessageAdapter(signingSecret);
 
 for(let k in actionHandlers) {
     slackInteractions.action(actionHandlers[k].match, actionHandlers[k].handle);

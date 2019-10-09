@@ -81,7 +81,7 @@ const challengeScreen = (gameId, state) => {
 }
 
 // Todo: get this dynamically
-const getGameImageURL = (game) => `https://bd5498c9.ngrok.io/slackuarto/render/${
+const getGameImageURL = (game) => `${process.env.BASE_URL}/slackuarto/render/${
                             game.board.map((e) => e < 0 ? '' : `${e}`).join(',')
                         };${
                             game.pieceOnOffer !== null ? game.pieceOnOffer : ''
