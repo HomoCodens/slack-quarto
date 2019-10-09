@@ -360,7 +360,6 @@ const quarToPng = async (game, highlights = true) => {
         let boardImg = await Jimp.read(__dirname + '/../img/board.png');
         let piecesImg = await Jimp.read(__dirname + '/../img/pieces.png');
 
-        console.log(JSON.stringify(game, null, 2));
         const { pieceOnOffer, board, lastPlacements, winningFields } = game;
         lastPlacement = lastPlacements[lastPlacements.length - 1];
 
