@@ -7,7 +7,7 @@ const updateResponse = (responseUrl, message) => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(message)
-    }).catch(console.log);
+    }).then(console.log).catch(console.log);
 }
 
 const getGameId = (...parts) => parts.sort().join('')
