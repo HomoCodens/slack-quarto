@@ -29,4 +29,10 @@ for(let k in actionHandlers) {
 app.use('/slackuarto/actions',
     slackInteractions.expressMiddleware());
 
+app.get('/heartbeat', (req, res) => {
+    res.json({
+        status: 'ok'
+    });
+});
+
 app.listen(3000, () => console.log('GO!'));
