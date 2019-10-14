@@ -9,7 +9,7 @@
   "author": "thoenis",
   "license": "ISC",
   "devDependencies": {
-    "mocha": "^6.0.1",
+    "mocha": "^6.2.1",
     "nodemon": "^1.18.10",
     "rewire": "^4.0.1",
     "sinon": "^7.2.5"
