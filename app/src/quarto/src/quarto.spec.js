@@ -301,37 +301,38 @@ describe('Quarto', () => {
 
         beforeEach(() => fakeIsWinningSet.reset());
 
-        it('calls isWinningSet with both diagonals', () => {
+        it('calls isWinningSet with the right squares', () => {
             fakeIsWinningSet.returns(false);
-            quarto.hasWinningSquare(board);
+            quarto.hasWinningSquare(board, 5);
             assert.deepStrictEqual(fakeIsWinningSet.args, [
                 [[0, 1, 4, 5]],
                 [[1, 2, 5, 6]],
-                [[2, 3, 6, 7]],
                 [[4, 5, 8, 9]],
-                [[5, 6, 9, 10]],
-                [[6, 7, 10, 11]],
-                [[8, 9, 12, 13]],
-                [[9, 10, 13, 14]],
-                [[10, 11, 14, 15]]
+                [[5, 6, 9, 10]]
             ]);
         });
 
         it('returns true on win', () => {
             fakeIsWinningSet.returns(true);
-            assert(quarto.hasWinningSquare(board));
-        });
 
-        it('returns true if the 5th square wins', () => {
-            fakeIsWinningSet.returns(false);
-            fakeIsWinningSet.onCall(4).returns(true);
-            assert(quarto.hasWinningSquare(board));
-            assert.equal(fakeIsWinningSet.callCount, 5);
+            const expected = {
+                isAWin: true,
+                winType: 'square',
+                winIndex: 0,
+                winningFields: [0, 1, 4, 5]
+            };
+
+            assert.deepStrictEqual(quarto.hasWinningSquare(board, 0), expected);
         });
 
         it('returns false when not won', () => {
             fakeIsWinningSet.returns(false);
-            assert(!quarto.hasWinningSquare(board));
+
+            const expected = {
+                isAWin: false
+            };
+
+            assert.deepStrictEqual(quarto.hasWinningSquare(board, 0), expected);
         });
     });
 });
