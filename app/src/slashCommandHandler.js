@@ -14,7 +14,7 @@ const slashCommandHandler = async (req, res) => {
             });            
         } else {
             res.json({
-                test: 'Usage: "/quarto challenge @<opponent>"'
+                text: 'Usage: "/quarto challenge @<opponent>"'
             });
         }
     }
