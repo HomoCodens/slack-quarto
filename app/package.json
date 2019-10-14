@@ -4,7 +4,7 @@
   "description": "Play Quarto over Slack",
   "main": "index.js",
   "scripts": {
-    "test": "mocha \"quarto/src/quarto.spec.js\""
+    "test": "mocha \"src/quarto/src/quarto.spec.js\""
   },
   "author": "thoenis",
   "license": "ISC",

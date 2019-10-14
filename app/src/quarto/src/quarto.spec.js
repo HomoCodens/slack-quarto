@@ -16,14 +16,18 @@ describe('Quarto', () => {
         drawBeingOffered: false,
         gameOver: false,
         advancedRules: false,
-        players: ['player1', 'player2']
+        players: ['player1', 'player2'],
+        lastPlacements: [null],
+        winType: null,
+        winIndex: null,
+        winningFields: null
     };
 
     describe('newGame', () => {
         const { newGame } = require('./quarto');
 
         it('generate a new game', () => {
-            assert.deepStrictEqual(newGame('player1', 'player2'), freshGame);
+            assert.deepStrictEqual(newGame('player1', 'player2', false), freshGame);
         });
     });
 
