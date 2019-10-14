@@ -12,6 +12,10 @@ const slashCommandHandler = async (req, res) => {
             res.json({
                 text: 'Please wait...'
             });            
+        } else {
+            res.json({
+                test: 'Usage: "/quarto challenge @<opponent>"'
+            });
         }
     }
 }
