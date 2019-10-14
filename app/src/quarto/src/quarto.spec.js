@@ -141,32 +141,33 @@ describe('Quarto', () => {
 
         beforeEach(() => fakeIsWinningSet.reset());
 
-        it('calls isWinningSet with all rows', () => {
+        it('calls isWinningSet with the right row', () => {
             fakeIsWinningSet.returns(false);
-            quarto.hasWinningRow(board);
+            quarto.hasWinningRow(board, 0);
             assert.deepStrictEqual(fakeIsWinningSet.args, [
-                [[0, 1, 2, 3]],
-                [[4, 5, 6, 7]],
-                [[8, 9, 10, 11]],
-                [[12, 13, 14, 15]]
+                [[0, 1, 2, 3]]
             ]);
         });
 
         it('returns true on win', () => {
             fakeIsWinningSet.returns(true);
-            assert(quarto.hasWinningRow(board));
-        });
 
-        it('returns true if the third row wins', () => {
-            fakeIsWinningSet.returns(false);
-            fakeIsWinningSet.onThirdCall().returns(true);
-            assert(quarto.hasWinningRow(board));
-            assert(fakeIsWinningSet.calledThrice);
+            const expected = {
+                isAWin: true,
+                winType: 'row',
+                winIndex: 0,
+                winningFields: [0, 1, 2, 3]
+            };
+
+            assert.deepStrictEqual(quarto.hasWinningRow(board, 0), expected);
         });
 
         it('returns false when not won', () => {
             fakeIsWinningSet.returns(false);
-            assert(!quarto.hasWinningRow(board));
+
+            const expected = { isAWin: false };
+
+            assert.deepStrictEqual(quarto.hasWinningRow(board, 0), expected);
         });
     });
 
