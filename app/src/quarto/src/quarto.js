@@ -165,7 +165,7 @@ const hasWinningDiagonal = (board, lastPlacement) => {
 
     const { row, column } = parseIndex(lastPlacement);
 
-    if(!(row === column || row + column === 5)) {
+    if(!(row === column || row + column === 3)) {
         return { isAWin: false };
     }
 
@@ -174,7 +174,7 @@ const hasWinningDiagonal = (board, lastPlacement) => {
             isAWin: true,
             winType: 'diagonal',
             winIndex: 0,
-            finningFields: [0, 5, 10, 15] 
+            winningFields: [0, 5, 10, 15] 
         };
     } else if(isWinningSet([board[3], board[6], board[9], board[12]])) {
         return {

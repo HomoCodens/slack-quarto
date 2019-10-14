@@ -231,9 +231,17 @@ describe('Quarto', () => {
 
         beforeEach(() => fakeIsWinningSet.reset());
 
+        it('returns no win on off-diagonal field', () => {
+            const expected = {
+                isAWin: false
+            };
+
+            assert.deepStrictEqual(quarto.hasWinningDiagonal(board, 2), expected);
+        });
+
         it('calls isWinningSet with both diagonals', () => {
             fakeIsWinningSet.returns(false);
-            quarto.hasWinningDiagonal(board);
+            quarto.hasWinningDiagonal(board, 0);
             assert.deepStrictEqual(fakeIsWinningSet.args, [
                 [[0, 5, 10, 15]],
                 [[3, 6, 9, 12]]
@@ -242,19 +250,40 @@ describe('Quarto', () => {
 
         it('returns true on win', () => {
             fakeIsWinningSet.returns(true);
-            assert(quarto.hasWinningDiagonal(board));
+
+            const expected = {
+                isAWin: true,
+                winType: 'diagonal',
+                winIndex: 0,
+                winningFields: [0, 5, 10, 15] 
+            };
+
+            assert.deepStrictEqual(quarto.hasWinningDiagonal(board, 0), expected);
         });
 
         it('returns true if the second diagonal wins', () => {
             fakeIsWinningSet.returns(false);
             fakeIsWinningSet.onSecondCall().returns(true);
-            assert(quarto.hasWinningDiagonal(board));
+
+            const expected = {
+                isAWin: true, 
+                winType: 'diagonal',
+                winIndex: 1,
+                winningFields: [3, 6, 9, 12]
+            };
+
+            assert.deepStrictEqual(quarto.hasWinningDiagonal(board, 3), expected);
             assert(fakeIsWinningSet.calledTwice);
         });
 
         it('returns false when not won', () => {
             fakeIsWinningSet.returns(false);
-            assert(!quarto.hasWinningDiagonal(board));
+
+            const expected = {
+                isAWin: false
+            };
+
+            assert.deepStrictEqual(quarto.hasWinningDiagonal(board, 0), expected);
         });
     });
 
