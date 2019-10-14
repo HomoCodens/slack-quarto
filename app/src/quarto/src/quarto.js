@@ -143,8 +143,8 @@ const hasWinningColumn = (board, lastPlacement) => {
     if(isWinningSet(boardColumn)) {
         return {
             isAWin: true,
-            winType: 'row',
-            winIndex: row,
+            winType: 'column',
+            winIndex: column,
             winningFields: [column, column+4, column+8, column+12]
         }
     }

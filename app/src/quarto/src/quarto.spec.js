@@ -185,32 +185,35 @@ describe('Quarto', () => {
 
         beforeEach(() => fakeIsWinningSet.reset());
 
-        it('calls isWinningSet with all columns', () => {
+        it('calls isWinningSet with the right column', () => {
             fakeIsWinningSet.returns(false);
-            quarto.hasWinningColumn(board);
+            quarto.hasWinningColumn(board, 0);
             assert.deepStrictEqual(fakeIsWinningSet.args, [
-                [[0, 4, 8, 12]],
-                [[1, 5, 9, 13]],
-                [[2, 6, 10, 14]],
-                [[3, 7, 11, 15]]
+                [[0, 4, 8, 12]]
             ]);
         });
 
         it('returns true on win', () => {
             fakeIsWinningSet.returns(true);
-            assert(quarto.hasWinningColumn(board));
-        });
 
-        it('returns true if the third col wins', () => {
-            fakeIsWinningSet.returns(false);
-            fakeIsWinningSet.onThirdCall().returns(true);
-            assert(quarto.hasWinningColumn(board));
-            assert(fakeIsWinningSet.calledThrice);
+            const expected = {
+                isAWin: true,
+                winType: 'column',
+                winIndex: 0,
+                winningFields: [0, 4, 8, 12]
+            };
+
+            assert.deepStrictEqual(quarto.hasWinningColumn(board, 0), expected);
         });
 
         it('returns false when not won', () => {
             fakeIsWinningSet.returns(false);
-            assert(!quarto.hasWinningColumn(board));
+
+            const expected = {
+                isAWin: false
+            };
+
+            assert.deepStrictEqual(quarto.hasWinningColumn(board, 0), expected);
         });
     });
 
