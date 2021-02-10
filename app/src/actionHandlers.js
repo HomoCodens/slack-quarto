@@ -2,7 +2,7 @@ const db = require('./db');
 const { messageUser, postToChannel } = require('./slack');
 const Quarto = require('./quarto');
 const screens = require('./screens');
-const logger = requier('./logger');
+const logger = require('./logger');
 
 const stateSwitchPlayers = (state) => {
     state.pieceOnOffer = null;

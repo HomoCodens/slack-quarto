@@ -2,7 +2,7 @@ const fetch = require('node-fetch');
 const logger = require('./logger');
 
 const updateResponse = (responseUrl, message) => {
-    logger.debug(`updating response ${responseURL} to ${JSON.stringify(message)}`);
+    logger.debug(`updating response ${responseUrl} to ${JSON.stringify(message)}`);
     return fetch(responseUrl, {
         method: 'POST',
         headers: {
