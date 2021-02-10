@@ -1,8 +1,11 @@
 const { WebClient } = require('@slack/web-api');
 
 const botOAuth = process.env.BOT_OAUTH;
+const logLevel = process.env.WEBCLIENT_LOG_LEVEL || 'info';
 
-const client = new WebClient(botOAuth);
+const client = new WebClient(botOAuth, {
+    logLevel: logLevel
+});
 
 // TODO: Pagination!
 const getUserId = async (userName) => {
