@@ -2,6 +2,7 @@ const db = require('./db');
 const { messageUser, postToChannel } = require('./slack');
 const Quarto = require('./quarto');
 const screens = require('./screens');
+const logger = requier('./logger');
 
 const stateSwitchPlayers = (state) => {
     state.pieceOnOffer = null;
@@ -16,6 +17,7 @@ const handleChallengeBasic = {
         actionId: 'quarto_challenge_basic'
     },
     handle: async (payload, respond) => {
+        logger.debug('Handling quarto_challenge_basic');
         handleChallenge(payload, respond, false);
         return {
             text: 'Sending invite...'
@@ -37,6 +39,7 @@ const handleChallengeAdvanced = {
 
 const handleChallenge = async (payload, respond, advancedRules) => {
     const gameId = payload.actions[0].value;
+    logger.debug(`${gameId} handling challenge with advancedrules: ${advancedRules}`);
     try {
         const state = await db.get(gameId);
         const [challengerId, opponentId] = state.players;
@@ -52,7 +55,7 @@ const handleChallenge = async (payload, respond, advancedRules) => {
 
         await messageUser(opponentId, channelId, screens.challengeScreen(gameId, newState));
     } catch(e) {
-        console.log(e);
+        logger.error(e);
         db.del(gameId);
         if(process.env.NODE_ENV === 'development') {
             return respond({text: JSON.stringify(e)});
@@ -63,6 +66,7 @@ const handleChallenge = async (payload, respond, advancedRules) => {
         }
     }
 
+    logger.debug('Done handling challenge')
     return respond({
         text: 'Invite sent, awaiting response.'
     });
